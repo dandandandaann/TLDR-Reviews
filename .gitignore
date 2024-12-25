@@ -1,5 +1,6 @@
 # Files I don't want added to the repo
 secrets/
+**/secrets.cfg
 
 # JetBrains
 **/.idea/

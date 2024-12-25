@@ -1,11 +1,13 @@
+import logging
 import requests
 import time
 
 class Harvest:
 
-    def __init__(self, config, wait_time):
-        self.wait_time = wait_time
+    def __init__(self, config):
         self.config = config
+        self.wait_time = float(config.get('WaitTime', 1.0))  # Default wait time to 1.0 seconds if not provided
+        self.logger = logging.getLogger(__name__)
 
 
     def reviews(self, property_id):
@@ -34,6 +36,12 @@ class Harvest:
             url = review_url.format(property_id, page)
             response = requests.get(url)
             if response.status_code != 200:
+                self.logger.error(
+                    "Failed to fetch reviews. " +
+                    "Property: '%s'. " +
+                    "Url: '%s'. "+
+                    "Status Code: '%s'. "
+                    , property_id, url, response.status_code)
                 break
 
             data = response.json()
@@ -70,6 +78,12 @@ class Harvest:
 
         response = requests.get(property_url)
         if response.status_code != 200:
+            self.logger.error(
+                "Failed to fetch property details. " +
+                "Property: '%s'. " +
+                "Url: '%s'. " +
+                "Status Code: '%s'. "
+                , property_id, property_url, response.status_code)
             return None
 
         data = response.json()
@@ -81,5 +95,7 @@ class Harvest:
         # Start review_harvester with the same property_id
         review_list = self.reviews(property_id)
         data["reviews"] = review_list
+
+        self.logger.info("Finished harvesting property '%s'. ", property_id)
 
         return data
